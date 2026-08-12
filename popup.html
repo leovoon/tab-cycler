@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Tab Cycler</title>
+  <style>
+    :root {
+      --bg: #1e1f24;
+      --card: #2a2c33;
+      --border: #3a3d46;
+      --text: #e8e9ed;
+      --muted: #9aa0ab;
+      --accent: #4f8cff;
+      --danger: #ff5f56;
+      --ok: #3fb950;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      width: 340px;
+      background: var(--bg);
+      color: var(--text);
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      font-size: 13px;
+      padding: 14px;
+    }
+    header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 12px;
+      gap: 8px;
+    }
+    h1 { font-size: 15px; font-weight: 600; margin: 0 auto; white-space: nowrap; }
+    .switch {
+      position: relative;
+      width: 44px; height: 24px;
+      display: inline-block;
+    }
+    .switch input { opacity: 0; width: 0; height: 0; }
+    .slider {
+      position: absolute; inset: 0;
+      background: var(--border);
+      border-radius: 24px;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+    .slider::before {
+      content: "";
+      position: absolute; width: 18px; height: 18px;
+      left: 3px; top: 3px;
+      background: #fff;
+      border-radius: 50%;
+      transition: transform 0.2s;
+    }
+    .switch input:checked + .slider { background: var(--ok); }
+    .switch input:checked + .slider::before { transform: translateX(20px); }
+    .card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 10px 12px;
+      margin-bottom: 10px;
+    }
+    .row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 8px;
+    }
+    .row:last-child { margin-bottom: 0; }
+    label { color: var(--muted); }
+    input[type="number"] {
+      width: 70px;
+      background: var(--bg);
+      border: 1px solid var(--border);
+      color: var(--text);
+      border-radius: 6px;
+      padding: 5px 8px;
+      font-size: 13px;
+    }
+    .whitelist-head {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 8px;
+    }
+    .whitelist-head label { font-weight: 600; color: var(--text); }
+    .btn {
+      background: var(--accent);
+      color: #fff;
+      border: none;
+      border-radius: 6px;
+      padding: 5px 10px;
+      font-size: 12px;
+      cursor: pointer;
+    }
+    .btn:hover { filter: brightness(1.1); }
+    .btn:disabled {
+      background: var(--border);
+      color: var(--muted);
+      cursor: default;
+    }
+    .btn:disabled:hover { filter: none; }
+    .btn.undo { font-size: 12px; padding: 5px 8px; }
+    .list { max-height: 160px; overflow-y: auto; }
+    .item {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+      padding: 6px 0;
+      border-top: 1px solid var(--border);
+    }
+    .item .title {
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+    .icon-btn {
+      background: none;
+      border: none;
+      color: var(--danger);
+      font-size: 15px;
+      cursor: pointer;
+      padding: 0 2px;
+      flex-shrink: 0;
+    }
+    .empty { color: var(--muted); font-style: italic; text-align: center; padding: 8px 0; }
+    .hint { color: var(--muted); font-size: 11px; margin-top: 6px; }
+  </style>
+</head>
+<body>
+  <header>
+    <button class="btn undo" id="undo" title="Restore the last closed batch" disabled>↩️ Undo</button>
+    <h1>Tab Cycler</h1>
+    <label class="switch">
+      <input type="checkbox" id="enabled" />
+      <span class="slider"></span>
+    </label>
+  </header>
+
+  <div class="card">
+    <div class="row">
+      <label for="timeout">Close tabs inactive for</label>
+      <input type="number" id="timeout" min="1" step="1" />
+      <label for="timeout" style="margin-left:6px;">min</label>
+    </div>
+    <div class="hint">Tabs inactive longer than this are auto-closed. Pinned &amp; active tabs are always kept.</div>
+  </div>
+
+  <div class="card">
+    <div class="whitelist-head">
+      <label>Whitelist</label>
+      <button class="btn" id="add-current">Add current tab</button>
+    </div>
+    <div class="list" id="list"></div>
+  </div>
+
+  <script src="popup.js"></script>
+</body>
+</html>
