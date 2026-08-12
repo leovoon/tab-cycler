@@ -4,6 +4,8 @@ A minimal Chrome / Helium (Manifest V3) extension that **quietly closes tabs
 you're not using** after a timeout — then lets you undo it with one click.
 Built for Zen, not notifications.
 
+![Tab Cycler popup](screenshot.jpg)
+
 ## Features
 
 - **Auto-close inactive tabs** — any tab idle longer than the timeout is closed
