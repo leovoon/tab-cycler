@@ -84,28 +84,15 @@ async function refreshUndoButton() {
 
 async function handleUndo() {
   if (undoBtn.disabled) return;
-  const batch = await getUndoBatch();
-  if (!batch) return;
-
-  // Reopen each tab into its original window at its original index.
-  for (const t of batch.tabs) {
-    try {
-      await chrome.tabs.create({
-        url: t.url || undefined,
-        windowId: t.windowId,
-        index: Math.min(t.index ?? 1, 1)
-      });
-    } catch (err) {
-      // Original window may be gone; fall back to the current window.
-      try {
-        await chrome.tabs.create({ url: t.url || undefined });
-      } catch (_) {}
-    }
+  undoBtn.disabled = true;
+  // The restore runs in the service worker: creating tabs can move focus and
+  // close this popup mid-loop, which used to truncate the restore to one tab.
+  try {
+    await chrome.runtime.sendMessage({ type: "restoreUndoBatch" });
+  } catch (_) {
+    // Worker unavailable; the button state is refreshed below.
   }
-
-  // One-shot undo: clear the buffer after use.
-  await chrome.storage.local.remove(UNDO_KEY);
-  refreshUndoButton();
+  await refreshUndoButton();
 }
 
 async function init() {

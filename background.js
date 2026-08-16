@@ -110,6 +110,59 @@ async function sweepInactiveTabs() {
   }
 }
 
+// ---------- Undo / restore ----------
+// Restoration runs in the service worker rather than the popup: creating a
+// tab moves focus, which can close the popup mid-loop and truncate the
+// restore to a single tab. The worker is not affected by that.
+async function restoreUndoBatch(senderWindowId) {
+  const { [UNDO_KEY]: batch } = await chrome.storage.local.get(UNDO_KEY);
+  if (!batch || !Array.isArray(batch.tabs) || batch.tabs.length === 0) {
+    return { restored: 0 };
+  }
+
+  // Restore per window in ascending index order so the recorded positions
+  // line up as earlier insertions shift later ones.
+  const tabs = [...batch.tabs].sort(
+    (a, b) => a.windowId - b.windowId || (a.index ?? 0) - (b.index ?? 0)
+  );
+
+  let restored = 0;
+  for (const t of tabs) {
+    const props = { url: t.url || undefined, active: false };
+    try {
+      // Original window still exists: restore into it, clamping the index.
+      const win = await chrome.windows.get(t.windowId, { populate: true });
+      props.windowId = t.windowId;
+      props.index = Math.min(t.index ?? win.tabs.length, win.tabs.length);
+    } catch (_) {
+      // Window is gone; fall back to the popup's window or the last focused.
+      props.windowId =
+        senderWindowId ?? (await chrome.windows.getLastFocused()).id;
+    }
+    try {
+      await chrome.tabs.create(props);
+      restored++;
+    } catch (_) {
+      try {
+        // Last resort: append to the current window.
+        await chrome.tabs.create({ url: t.url || undefined, active: false });
+        restored++;
+      } catch (_) {}
+    }
+  }
+
+  // One-shot undo: clear the buffer after use.
+  await chrome.storage.local.remove(UNDO_KEY);
+  return { restored };
+}
+
+chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
+  if (msg && msg.type === "restoreUndoBatch") {
+    restoreUndoBatch(sender.tab && sender.tab.windowId).then(sendResponse);
+    return true; // keep the channel open for the async response
+  }
+});
+
 // ---------- Init ----------
 chrome.tabs.onActivated.addListener(onTabActivated);
 chrome.tabs.onUpdated.addListener(onTabUpdated);
