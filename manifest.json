@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "Tab Cycler",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Automatically close tabs that have been inactive for a set time. Toggle on/off and whitelist tabs you want to keep.",
   "permissions": ["tabs", "storage", "alarms"],
   "background": {
