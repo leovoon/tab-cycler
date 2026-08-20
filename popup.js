@@ -1,4 +1,4 @@
-// Tab Cycler popup logic.
+// Auto-Close Tabs popup logic.
 
 const SETTINGS_KEY = "settings";
 const WHITELIST_KEY = "whitelist";

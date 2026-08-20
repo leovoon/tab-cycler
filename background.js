@@ -1,4 +1,4 @@
-// Tab Cycler background service worker.
+// Auto-Close Tabs background service worker.
 // Watches tab activity and periodically closes tabs that have been inactive
 // for longer than the configured timeout — unless the feature is disabled,
 // the tab is pinned, it's the active tab, or it is whitelisted.
